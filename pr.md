@@ -1,39 +1,26 @@
 ---
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(gh:*)
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git branch:*), Bash(git log:*), Bash(gh pr:*)
 description: Create a new Pull Request
+argument-hint: [mode] [include-how-to-test]
 ---
 # Create Pull Request
-
-## Arguments
-Mode (default: ready): $1
-Include how to test (default: false): $2
 
 ## Overview
 Automate the creation of well-structured commits and pull requests by analyzing code changes and following established conventions.
 
+## Context
+- Current branch: !`git branch --show-current`
+- Current git status: !`git status`
+- Current git diff (staged and unstaged changes): !`git diff HEAD`
+- Recent commits: !`git log --oneline -10`
+
 ## Process
 
-### 1. Analyze Code Changes
-- **Review the git diff** to understand the scope and nature of changes
-- **Identify affected components/packages** in the codebase
-- **Assess the impact** (breaking changes, new features, bug fixes, etc.)
-- **Categorize changes** by functionality or package for logical grouping
+### 0. Get existing PRs
+- Use command `gh pr list --state all --json number,title,headRefName --head <CURRENT_BRANCH>` to list exising PRs and add them to context
 
-### 2. Create Structured Commits
-- **Use conventional commit format**: `type(scope): description`
-  - **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-  - **Scope**: package name (for monorepos) or component/module affected.
-  - **Description**: concise one line summary in imperative mood. Do not add any message about the use of AI to generate the commit's message
-
-- **For monorepos**: 
-  - Separate commits by package when changes span multiple packages
-  - Use package name as scope: `feat(workflow): add new step validation`
-  - Include context in commit body if needed for complex changes
-
-- **Multi-commit strategy**: Group related changes logically
-  - Separate by functionality, not just by file
-  - Each commit should be a coherent, testable unit
-  - Avoid mixing refactoring with feature changes
+### 1. Commit changes
+- **Run /commit** to create structured commits for the current branch
 
 ### 3. Generate Pull Request
 - **Title**: Brief conventional commit message about the changes
@@ -44,15 +31,18 @@ Automate the creation of well-structured commits and pull requests by analyzing 
   - Link any related issues or requirements
   - Highlight any breaking changes or important considerations
   
-  **How to Test:** *(when applicable)*
+  **How to Test:** *(should be included: $2)*
   - Specific steps to verify the changes work correctly
   - Any setup requirements or test data needed
   - Expected behavior after the changes
 
 - **Instructions**: 
   - show me the PR content before creating the PR
-  - generate the PR in draft mode if the "Mode" argument is "draft"
+  - generate the PR in $1 mode
   - always consider `main` as the parent branch. compare changes from the current branch with the `main` branch
+
+### 4. Open Generated PR
+- Run `gh pr view -w` to open the created PR on the browser
 
 ## Best Practices
 - **Keep commits atomic**: Each commit should represent one logical change
